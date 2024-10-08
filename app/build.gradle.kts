@@ -36,6 +36,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "evp.test.weather.HiltTestRunner"
+
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -80,6 +81,8 @@ android {
 dependencies {
 
     val composeBom = platform(libs.androidx.compose.bom)
+    val retrofit_version = "2.9.0"
+    val okhttp_logging_version = "4.9.0"
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
@@ -97,6 +100,11 @@ dependencies {
     // Hilt and Robolectric tests.
     testImplementation(libs.hilt.android.testing)
     kaptTest(libs.hilt.android.compiler)
+
+    // Http
+    implementation("com.squareup.retrofit2:retrofit:$retrofit_version")
+    implementation("com.squareup.retrofit2:converter-gson:$retrofit_version")
+    implementation("com.squareup.okhttp3:logging-interceptor:$okhttp_logging_version")
 
     // Arch Components
     implementation(libs.androidx.lifecycle.runtime.compose)

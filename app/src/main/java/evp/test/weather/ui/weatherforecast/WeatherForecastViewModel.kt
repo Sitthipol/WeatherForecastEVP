@@ -16,19 +16,18 @@
 
 package evp.test.weather.ui.weatherforecast
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import evp.test.weather.data.WeatherForecastRepository
+import evp.test.weather.data.model.City
 import evp.test.weather.ui.weatherforecast.WeatherForecastUiState.Error
 import evp.test.weather.ui.weatherforecast.WeatherForecastUiState.Loading
 import evp.test.weather.ui.weatherforecast.WeatherForecastUiState.Success
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,20 +35,30 @@ class WeatherForecastViewModel @Inject constructor(
     private val weatherForecastRepository: WeatherForecastRepository
 ) : ViewModel() {
 
-    val uiState: StateFlow<WeatherForecastUiState> = weatherForecastRepository
-        .weatherForecasts.map<List<String>, WeatherForecastUiState>(::Success)
-        .catch { emit(Error(it)) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Loading)
+    private val _uiState: MutableStateFlow<WeatherForecastUiState> =
+        MutableStateFlow(WeatherForecastUiState.Empty)
+    val uiState = _uiState.asStateFlow()
 
-    fun addWeatherForecast(name: String) {
+    fun getWeatherForecast(city: String) {
         viewModelScope.launch {
-            weatherForecastRepository.add(name)
+            weatherForecastRepository.getWeather(city).collect { result ->
+                _uiState.value = Loading
+
+                if (result.isSuccess) {
+                    _uiState.value = Success(result.getOrNull())
+                }
+
+                if (result.isFailure) {
+                    _uiState.value = Error(result.exceptionOrNull())
+                }
+            }
         }
     }
 }
 
 sealed interface WeatherForecastUiState {
+    object Empty : WeatherForecastUiState
     object Loading : WeatherForecastUiState
-    data class Error(val throwable: Throwable) : WeatherForecastUiState
-    data class Success(val data: List<String>) : WeatherForecastUiState
+    data class Error(val throwable: Throwable?) : WeatherForecastUiState
+    data class Success(val data: City?) : WeatherForecastUiState
 }

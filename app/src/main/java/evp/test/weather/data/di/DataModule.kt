@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import evp.test.weather.data.WeatherForecastRepository
 import evp.test.weather.data.DefaultWeatherForecastRepository
+import evp.test.weather.data.model.City
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,11 +40,11 @@ interface DataModule {
 }
 
 class FakeWeatherForecastRepository @Inject constructor() : WeatherForecastRepository {
-    override val weatherForecasts: Flow<List<String>> = flowOf(fakeWeatherForecasts)
 
-    override suspend fun add(name: String) {
+    override suspend fun getWeather(city: String): Flow<Result<City>> {
         throw NotImplementedError()
     }
+
 }
 
 val fakeWeatherForecasts = listOf("One", "Two", "Three")

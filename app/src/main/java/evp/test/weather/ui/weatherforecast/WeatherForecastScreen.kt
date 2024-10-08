@@ -16,14 +16,17 @@
 
 package evp.test.weather.ui.weatherforecast
 
-import evp.test.weather.ui.theme.MyApplicationTheme
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -31,65 +34,125 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
-fun WeatherForecastScreen(modifier: Modifier = Modifier, viewModel: WeatherForecastViewModel = hiltViewModel()) {
-    val items by viewModel.uiState.collectAsStateWithLifecycle()
-    if (items is WeatherForecastUiState.Success) {
-        WeatherForecastScreen(
-            items = (items as WeatherForecastUiState.Success).data,
-            onSave = viewModel::addWeatherForecast,
-            modifier = modifier
-        )
-    }
+fun WeatherForecastScreen(
+    modifier: Modifier = Modifier,
+    viewModel: WeatherForecastViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+//    if (items is WeatherForecastUiState.Empty) {
+//        WeatherForecastScreen(
+//            onSave = viewModel::addWeatherForecast,
+//            modifier = modifier
+//        )
+//    }
+    WeatherForecastScreen(
+        uiState = uiState,
+        viewModel = viewModel,
+        modifier = modifier
+    )
 }
 
 @Composable
 internal fun WeatherForecastScreen(
-    items: List<String>,
-    onSave: (name: String) -> Unit,
+    uiState: WeatherForecastUiState,
+    viewModel: WeatherForecastViewModel,
     modifier: Modifier = Modifier
 ) {
     Column(modifier) {
-        var nameWeatherForecast by remember { mutableStateOf("Compose") }
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            TextField(
-                value = nameWeatherForecast,
-                onValueChange = { nameWeatherForecast = it }
-            )
+        WeatherForecastSearchSection(modifier, onSave = viewModel::getWeatherForecast)
+    }
+    when (uiState) {
 
-            Button(modifier = Modifier.width(96.dp), onClick = { onSave(nameWeatherForecast) }) {
-                Text("Save")
+        is WeatherForecastUiState.Empty -> {
+            Column(modifier) {
+                WeatherForecastSearchSection(modifier, onSave = viewModel::getWeatherForecast)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+
+                }
             }
         }
-        items.forEach {
-            Text("Saved item: $it")
+
+        is WeatherForecastUiState.Loading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+
+        is WeatherForecastUiState.Error -> {
+            Log.d("TAG", "WeatherForecastScreen: Error ${uiState.throwable}")
+        }
+
+        is WeatherForecastUiState.Success -> {
+            Column(modifier) {
+                WeatherForecastSearchSection(modifier, onSave = viewModel::getWeatherForecast)
+                val items = uiState.data
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text("Saved item: $items")
+                }
+            }
+
+        }
+    }
+}
+
+@Composable
+internal fun WeatherForecastSearchSection(modifier: Modifier, onSave: (name: String) -> Unit) {
+    var cityName by remember { mutableStateOf("") }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 24.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        TextField(
+            value = cityName,
+            onValueChange = {
+                cityName = it
+            }
+        )
+
+        Button(modifier = Modifier.width(96.dp), onClick = { onSave(cityName) }) {
+            Text("Save")
         }
     }
 }
 
 // Previews
 
-@Preview(showBackground = true)
-@Composable
-private fun DefaultPreview() {
-    MyApplicationTheme {
-        WeatherForecastScreen(listOf("Compose", "Room", "Kotlin"), onSave = {})
-    }
-}
-
-@Preview(showBackground = true, widthDp = 480)
-@Composable
-private fun PortraitPreview() {
-    MyApplicationTheme {
-        WeatherForecastScreen(listOf("Compose", "Room", "Kotlin"), onSave = {})
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//private fun DefaultPreview() {
+//    MyApplicationTheme {
+//        WeatherForecastScreen(onSave = {}, modifier = modifier, viewModel = viewModel)
+//    }
+//}
+//
+//@Preview(showBackground = true, widthDp = 480)
+//@Composable
+//private fun PortraitPreview() {
+//    MyApplicationTheme {
+//        WeatherForecastScreen(/*items = City(
+//            weather = listOf(),
+//            main = City.Main(temp = 2.3, humidity = 8183),
+//            wind = City.Wind(speed = 4.5f, deg = 1940),
+//            name = "Wilmer Weiss"
+//        ), */onSave = {})
+//    }
+//}
