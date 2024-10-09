@@ -83,7 +83,7 @@ dependencies {
     val composeBom = platform(libs.androidx.compose.bom)
     val retrofit_version = "2.9.0"
     val okhttp_logging_version = "4.9.0"
-    val coil_version = "3.0.0"
+    val coil_version = "3.0.0-rc01"
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
@@ -109,11 +109,8 @@ dependencies {
 
     // Coil
 
-//    implementation("io.coil-kt.coil3:coil-compose:$coil_version")
-//    implementation("io.coil-kt.coil3:coil-network-okhttp:$coil_version")
-
-    implementation("io.coil-kt.coil3:coil-compose:3.0.0-rc01")
-    implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.0-rc01")
+    implementation("io.coil-kt.coil3:coil-compose:$coil_version")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:$coil_version")
 
     // Arch Components
     implementation(libs.androidx.lifecycle.runtime.compose)
