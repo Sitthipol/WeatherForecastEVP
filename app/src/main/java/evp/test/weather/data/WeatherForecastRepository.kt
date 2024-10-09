@@ -16,26 +16,27 @@
 
 package evp.test.weather.data
 
+import evp.test.weather.data.model.City
+import evp.test.weather.data.remote.ApiServiceImp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import evp.test.weather.data.local.database.WeatherForecast
-import evp.test.weather.data.local.database.WeatherForecastDao
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 interface WeatherForecastRepository {
-    val weatherForecasts: Flow<List<String>>
-
-    suspend fun add(name: String)
+    suspend fun getWeather(city: String): Flow<City>
 }
 
 class DefaultWeatherForecastRepository @Inject constructor(
-    private val weatherForecastDao: WeatherForecastDao
+    private val apiServiceImp: ApiServiceImp
 ) : WeatherForecastRepository {
 
-    override val weatherForecasts: Flow<List<String>> =
-        weatherForecastDao.getWeatherForecasts().map { items -> items.map { it.name } }
-
-    override suspend fun add(name: String) {
-        weatherForecastDao.insertWeatherForecast(WeatherForecast(name = name))
+    override suspend fun getWeather(city: String): Flow<City> = flow {
+        val response = apiServiceImp.getCity(city, "bd7748c052fa603662b78efb44ee277a")
+        emit(response)
     }
+        .flowOn(Dispatchers.IO)
+        .conflate()
 }
