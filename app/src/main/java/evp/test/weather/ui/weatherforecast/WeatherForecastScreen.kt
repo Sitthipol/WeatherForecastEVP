@@ -16,17 +16,23 @@
 
 package evp.test.weather.ui.weatherforecast
 
-import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -36,9 +42,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.SubcomposeAsyncImage
+import evp.test.weather.ui.theme.MyApplicationTheme
 
 @Composable
 fun WeatherForecastScreen(
@@ -46,42 +55,26 @@ fun WeatherForecastScreen(
     viewModel: WeatherForecastViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-//    if (items is WeatherForecastUiState.Empty) {
-//        WeatherForecastScreen(
-//            onSave = viewModel::addWeatherForecast,
-//            modifier = modifier
-//        )
-//    }
-    WeatherForecastScreen(
-        uiState = uiState,
-        viewModel = viewModel,
-        modifier = modifier
-    )
+    val isError by viewModel.isError.collectAsStateWithLifecycle()
+
+    Column(modifier) {
+        WeatherForecastSearchSection(
+            viewModel::validateCityName,
+            isError
+        )
+        WeatherForecastScreen(uiState)
+    }
+
 }
 
 @Composable
 internal fun WeatherForecastScreen(
     uiState: WeatherForecastUiState,
-    viewModel: WeatherForecastViewModel,
-    modifier: Modifier = Modifier
 ) {
-    Column(modifier) {
-        WeatherForecastSearchSection(modifier, onSave = viewModel::getWeatherForecast)
-    }
     when (uiState) {
 
         is WeatherForecastUiState.Empty -> {
-            Column(modifier) {
-                WeatherForecastSearchSection(modifier, onSave = viewModel::getWeatherForecast)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
 
-                }
-            }
         }
 
         is WeatherForecastUiState.Loading -> {
@@ -91,21 +84,40 @@ internal fun WeatherForecastScreen(
         }
 
         is WeatherForecastUiState.Error -> {
-            Log.d("TAG", "WeatherForecastScreen: Error ${uiState.throwable}")
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(text = uiState.errorMessage.toString())
+            }
         }
 
         is WeatherForecastUiState.Success -> {
-            Column(modifier) {
-                WeatherForecastSearchSection(modifier, onSave = viewModel::getWeatherForecast)
-                val items = uiState.data
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Text("Saved item: $items")
+
+            val items = uiState.data
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("${items?.name}")
+                items?.weather?.map {
+                    SubcomposeAsyncImage(
+                        modifier = Modifier.size(50.dp),
+                        model = "https://openweathermap.org/img/wn/${it.icon}@2x.png",
+                        contentDescription = null,
+                        loading = {
+                            CircularProgressIndicator()
+                        }
+                    )
+                    Text(it.description)
                 }
+                Text("${items?.main?.temp} °C")
             }
 
         }
@@ -113,46 +125,72 @@ internal fun WeatherForecastScreen(
 }
 
 @Composable
-internal fun WeatherForecastSearchSection(modifier: Modifier, onSave: (name: String) -> Unit) {
+internal fun WeatherForecastSearchSection(
+    onValidate: (cityName: String) -> Unit,
+    isError: Boolean
+) {
     var cityName by remember { mutableStateOf("") }
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 24.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(horizontal = 0.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         TextField(
+            modifier = Modifier.fillMaxWidth(),
             value = cityName,
             onValueChange = {
                 cityName = it
+            },
+            maxLines = 1,
+            label = { Text(text = "City name") },
+            trailingIcon = {
+                if (cityName.isNotBlank()) {
+                    Icon(
+                        imageVector = Icons.Rounded.Close,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable { cityName = "" }
+                    )
+                }
+            },
+            isError = isError,
+            supportingText = {
+                if (isError) {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = "Input is empty",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
         )
 
-        Button(modifier = Modifier.width(96.dp), onClick = { onSave(cityName) }) {
-            Text("Save")
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {
+                onValidate(cityName)
+            }) {
+            Text("Search")
         }
     }
 }
 
 // Previews
 
-//@Preview(showBackground = true)
-//@Composable
-//private fun DefaultPreview() {
-//    MyApplicationTheme {
-//        WeatherForecastScreen(onSave = {}, modifier = modifier, viewModel = viewModel)
-//    }
-//}
-//
-//@Preview(showBackground = true, widthDp = 480)
-//@Composable
-//private fun PortraitPreview() {
-//    MyApplicationTheme {
-//        WeatherForecastScreen(/*items = City(
-//            weather = listOf(),
-//            main = City.Main(temp = 2.3, humidity = 8183),
-//            wind = City.Wind(speed = 4.5f, deg = 1940),
-//            name = "Wilmer Weiss"
-//        ), */onSave = {})
-//    }
-//}
+@Preview(showBackground = true)
+@Composable
+private fun DefaultPreview() {
+    MyApplicationTheme {
+        WeatherForecastScreen()
+    }
+}
+
+@Preview(showBackground = true, widthDp = 480)
+@Composable
+private fun PortraitPreview() {
+    MyApplicationTheme {
+        WeatherForecastScreen()
+    }
+}

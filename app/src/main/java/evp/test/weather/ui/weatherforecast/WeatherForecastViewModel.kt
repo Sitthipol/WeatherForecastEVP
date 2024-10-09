@@ -28,6 +28,11 @@ import evp.test.weather.ui.weatherforecast.WeatherForecastUiState.Loading
 import evp.test.weather.ui.weatherforecast.WeatherForecastUiState.Success
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onStart
+import okio.IOException
+import retrofit2.HttpException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,19 +44,37 @@ class WeatherForecastViewModel @Inject constructor(
         MutableStateFlow(WeatherForecastUiState.Empty)
     val uiState = _uiState.asStateFlow()
 
-    fun getWeatherForecast(city: String) {
+    private val _isError: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isError = _isError.asStateFlow()
+
+    private fun getWeatherForecast(cityName: String) {
         viewModelScope.launch {
-            weatherForecastRepository.getWeather(city).collect { result ->
-                _uiState.value = Loading
-
-                if (result.isSuccess) {
-                    _uiState.value = Success(result.getOrNull())
+            weatherForecastRepository.getWeather(cityName)
+                .onStart {
+                    _uiState.value = Loading
                 }
-
-                if (result.isFailure) {
-                    _uiState.value = Error(result.exceptionOrNull())
+                .catch { e ->
+                    when (e) {
+                        is HttpException -> {
+                            when (e.code()) {
+                                404 -> _uiState.value = Error("City not found ")
+                            }
+                        }
+                        is IOException -> _uiState.value = Error("Couldn't reach server. Check your internet connection.")
+                    }
                 }
-            }
+                .collect { result ->
+                    _uiState.value = Success(result)
+                }
+        }
+    }
+
+    fun validateCityName(cityName: String) {
+        val isError = cityName.isBlank()
+        _isError.value = isError
+
+        if (!isError) {
+            getWeatherForecast(cityName)
         }
     }
 }
@@ -59,6 +82,6 @@ class WeatherForecastViewModel @Inject constructor(
 sealed interface WeatherForecastUiState {
     object Empty : WeatherForecastUiState
     object Loading : WeatherForecastUiState
-    data class Error(val throwable: Throwable?) : WeatherForecastUiState
+    data class Error(val errorMessage: String?) : WeatherForecastUiState
     data class Success(val data: City?) : WeatherForecastUiState
 }

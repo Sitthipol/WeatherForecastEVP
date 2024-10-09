@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package evp.test.weather.data.local.database
+package evp.test.weather
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
+import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
 
-@Database(entities = [WeatherForecast::class], version = 1)
-abstract class AppDatabase : RoomDatabase() {
-    abstract fun weatherForecastDao(): WeatherForecastDao
-}
+@HiltAndroidApp
+class WeatherForecastEVP : Application()
