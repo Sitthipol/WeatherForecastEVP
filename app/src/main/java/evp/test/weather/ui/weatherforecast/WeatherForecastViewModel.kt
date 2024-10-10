@@ -16,7 +16,6 @@
 
 package evp.test.weather.ui.weatherforecast
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,7 +28,6 @@ import evp.test.weather.ui.weatherforecast.WeatherForecastUiState.Success
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onStart
 import okio.IOException
 import retrofit2.HttpException
@@ -57,10 +55,10 @@ class WeatherForecastViewModel @Inject constructor(
                     when (e) {
                         is HttpException -> {
                             when (e.code()) {
-                                404 -> _uiState.value = Error("City not found ")
+                                404 -> _uiState.value = Error(ErrorMessage.ERROR_404)
                             }
                         }
-                        is IOException -> _uiState.value = Error("Couldn't reach server. Check your internet connection.")
+                        is IOException -> _uiState.value = Error(ErrorMessage.INTERNET_NOT_CONNECT)
                     }
                 }
                 .collect { result ->
@@ -82,6 +80,11 @@ class WeatherForecastViewModel @Inject constructor(
 sealed interface WeatherForecastUiState {
     object Empty : WeatherForecastUiState
     object Loading : WeatherForecastUiState
-    data class Error(val errorMessage: String?) : WeatherForecastUiState
+    data class Error(val errorMessage: ErrorMessage) : WeatherForecastUiState
     data class Success(val data: City?) : WeatherForecastUiState
+}
+
+enum class ErrorMessage {
+    ERROR_404,
+    INTERNET_NOT_CONNECT
 }

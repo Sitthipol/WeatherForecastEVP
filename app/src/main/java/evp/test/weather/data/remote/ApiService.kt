@@ -10,6 +10,6 @@ interface ApiService {
     suspend fun getCityData(
         @Query("q") q: String,
         @Query("appid") appId: String,
-        @Query("units") units: String = "metric"
+        @Query("units") units: String
     ): City
 }
