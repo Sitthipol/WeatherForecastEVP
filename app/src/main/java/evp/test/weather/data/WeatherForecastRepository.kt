@@ -16,6 +16,7 @@
 
 package evp.test.weather.data
 
+import evp.test.weather.common.Constants
 import evp.test.weather.data.model.City
 import evp.test.weather.data.remote.ApiServiceImp
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +35,7 @@ class DefaultWeatherForecastRepository @Inject constructor(
 ) : WeatherForecastRepository {
 
     override suspend fun getWeather(city: String): Flow<City> = flow {
-        val response = apiServiceImp.getCity(city, "bd7748c052fa603662b78efb44ee277a")
+        val response = apiServiceImp.getCity(city, Constants.API_KEY, Constants.UNITS)
         emit(response)
     }
         .flowOn(Dispatchers.IO)

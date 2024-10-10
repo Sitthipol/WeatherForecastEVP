@@ -1,14 +1,13 @@
 package evp.test.weather.data.di
 
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import okhttp3.OkHttpClient
+import evp.test.weather.common.Constants
+import evp.test.weather.data.remote.ApiService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.TimeUnit
-import dagger.Provides
-import evp.test.weather.data.remote.ApiService
 import javax.inject.Singleton
 
 @Module
@@ -17,7 +16,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun getBaseUrl():String = "http://api.openweathermap.org/data/2.5/"
+    fun getBaseUrl():String = Constants.BASE_URL
 
     @Provides
     @Singleton

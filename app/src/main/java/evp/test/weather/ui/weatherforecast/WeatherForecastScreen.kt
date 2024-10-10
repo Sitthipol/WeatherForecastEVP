@@ -22,12 +22,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -42,11 +39,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.SubcomposeAsyncImage
+import evp.test.weather.R
 import evp.test.weather.ui.theme.MyApplicationTheme
 
 @Composable
@@ -91,7 +90,10 @@ internal fun WeatherForecastScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = uiState.errorMessage.toString())
+                when (uiState.errorMessage) {
+                    ErrorMessage.ERROR_404 -> Text(text = stringResource(id = R.string.services_error_404))
+                    ErrorMessage.INTERNET_NOT_CONNECT -> Text(text = stringResource(id = R.string.internet_not_connect))
+                }
             }
         }
 
@@ -109,7 +111,7 @@ internal fun WeatherForecastScreen(
                 items?.weather?.map {
                     SubcomposeAsyncImage(
                         modifier = Modifier.size(50.dp),
-                        model = "https://openweathermap.org/img/wn/${it.icon}@2x.png",
+                        model = stringResource(id = R.string.weather_condition_image, it.icon),
                         contentDescription = null,
                         loading = {
                             CircularProgressIndicator()
@@ -117,7 +119,7 @@ internal fun WeatherForecastScreen(
                     )
                     Text(it.description)
                 }
-                Text("${items?.main?.temp} °C")
+                Text(stringResource(id = R.string.temp_in_celsius, items?.main?.temp.toString()))
             }
 
         }
@@ -143,7 +145,7 @@ internal fun WeatherForecastSearchSection(
                 cityName = it
             },
             maxLines = 1,
-            label = { Text(text = "City name") },
+            label = { Text(text = stringResource(id = R.string.text_field_title)) },
             trailingIcon = {
                 if (cityName.isNotBlank()) {
                     Icon(
@@ -160,7 +162,7 @@ internal fun WeatherForecastSearchSection(
                 if (isError) {
                     Text(
                         modifier = Modifier.fillMaxWidth(),
-                        text = "Input is empty",
+                        text = stringResource(id = R.string.text_field_error),
                         color = MaterialTheme.colorScheme.error
                     )
                 }
@@ -172,7 +174,7 @@ internal fun WeatherForecastSearchSection(
             onClick = {
                 onValidate(cityName)
             }) {
-            Text("Search")
+            Text(stringResource(id = R.string.search_city_btn))
         }
     }
 }
