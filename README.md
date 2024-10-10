@@ -22,5 +22,6 @@ Libraries
 - Jetpack Compose
 
 
-![c6f75d03-dcf1-4a3e-90da-684b7f6864de](https://github.com/user-attachments/assets/01585a83-3812-4c61-af4a-e9ac158b5961) ![f0d37e21-206c-499e-8156-3a8410874e77](https://github.com/user-attachments/assets/a919be27-d3e7-4e88-9ebb-e0c474abad90)
+
+![Screen Shot 2567-10-10 at 12 34 10](https://github.com/user-attachments/assets/f6cc9aba-cf47-4c21-9d9b-0352518eaa1b) ![Screen Shot 2567-10-10 at 12 34 57](https://github.com/user-attachments/assets/74a7f785-7599-4980-884b-a115bd49b28d)
 
