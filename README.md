@@ -21,4 +21,6 @@ Libraries
 - Navigation
 - Jetpack Compose
 
-![c6f75d03-dcf1-4a3e-90da-684b7f6864de](https://github.com/user-attachments/assets/829770c8-dbde-4464-a23d-1e520e1d7c9e) ![f0d37e21-206c-499e-8156-3a8410874e77](https://github.com/user-attachments/assets/c4864b70-4c33-447e-aed5-6fa8c08661a2)
+
+![c6f75d03-dcf1-4a3e-90da-684b7f6864de](https://github.com/user-attachments/assets/01585a83-3812-4c61-af4a-e9ac158b5961) ![f0d37e21-206c-499e-8156-3a8410874e77](https://github.com/user-attachments/assets/a919be27-d3e7-4e88-9ebb-e0c474abad90)
+
